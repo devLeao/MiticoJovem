@@ -1,49 +1,348 @@
 package Jovem;
 
+
+//Aqui estamos importando as classes dos metodos E EVENTOS a serem utilizados no decorrer do codigo
+
+
 import robocode.*;
-import java.awt.Color;
+import java.awt.geom.*;
+import robocode.util.*;
+import java.awt.*; //utilizado tambem para as cores
+
+
+
 
 public class Mitico extends AdvancedRobot {
-    int moveDirection = 1;
 
-    public void run() {
-        setAdjustRadarForRobotTurn(true);
-        setAllColors(Color.yellow); // Define todas as cores do robô para amarelo
-        setAdjustGunForRobotTurn(true);
-        turnRadarRightRadians(Double.POSITIVE_INFINITY);
-    }
+int FORWARD = 1;
+Inimigo[] data; // array tipo Inimigo em data 
+int posicao;
+int count;
+String Atualposicao;
+double mudancadaenergia;
+int movidirecao = 1;
+double Previsaoenergia = 100;
 
-    public void onScannedRobot(ScannedRobotEvent e) {
-        double absBearing = e.getBearingRadians() + getHeadingRadians();
-        double latVel = e.getVelocity() * Math.sin(e.getHeadingRadians() - absBearing);
-        double gunTurnAmt;
-        setTurnRadarLeftRadians(getRadarTurnRemainingRadians());
-        if (Math.random() > 0.9) {
-            setMaxVelocity((12 * Math.random()) + 12);
-        }
-        if (e.getDistance() > 150) {
-            gunTurnAmt = robocode.util.Utils.normalRelativeAngle(absBearing - getGunHeadingRadians() + latVel / 22);
-            setTurnGunRightRadians(gunTurnAmt);
-            setTurnRightRadians(robocode.util.Utils.normalRelativeAngle(absBearing - getHeadingRadians() + latVel / getVelocity()));
-            setAhead((e.getDistance() - 140) * moveDirection);
-            setFire(3);
-        } else {
-            gunTurnAmt = robocode.util.Utils.normalRelativeAngle(absBearing - getGunHeadingRadians() + latVel / 15);
-            setTurnGunRightRadians(gunTurnAmt);
-            setTurnLeft(-90 - e.getBearing());
-            setAhead((e.getDistance() - 140) * moveDirection);
-            setFire(3);
-        }
-    }
 
-    public void onHitWall(HitWallEvent e) {
-        moveDirection = -moveDirection;
-    }
-
-    public void onWin(WinEvent e) {
-        for (int i = 0; i < 50; i++) {
-            turnRight(30);
-            turnLeft(30);
-        }
-    }
+//Criada a classe "inimigo"
+public class Inimigo {
+	//colocado como publico as variaveis para conseguir acesso.
+	public String Nome; 
+	public int AcertouComTecnica1 = 2;
+	public int AcertouComTecnica2 = 1;
+	public int AcertouComTecnica3 = 1;
+	public int AtualTecnica = 1;
 }
+
+public void run() { 
+
+	
+
+
+    // Set colors
+	data = new Inimigo[15];
+	count = 0;
+	for (int a = 0; a < 15; a++) {
+		data[a] = new Inimigo();
+		data[a].Nome = "";
+	}
+	
+	setBodyColor(Color.green);
+	setGunColor(Color.green);
+	setRadarColor(Color.green);
+	setBulletColor(Color.red);
+	setScanColor(Color.green);
+	
+	
+	setAdjustRadarForGunTurn(true);
+	setAdjustRadarForRobotTurn(true);
+	setAdjustGunForRobotTurn(true);
+
+	while (true) { 
+		turnRadarRight(360); 
+
+			
+	}
+}
+
+	if (e.getBearing() > -90 && e.getBearing() < 45) { // O angulo relativo quando esta na frente do robo. 
+		//Quando for zero esta na frente do robo.
+		setBack(40); //volta 80 pixels .. utilzando set para um robo mais avancado (extends AdvancedRobot)
+	} else {
+		setAhead(75); //frente > 120 pixel de acorodo com as configuracoes da tela, utilzando set para um robo mais avancado (extends AdvancedRobot)
+	}
+}
+
+
+	Atualposicao = e.getName(); // String	Retorna o nome do robo adversario scaneado.
+	if (Verificarinimigo(e.getName()) == -1) {
+		System.out.println(count);
+		data[count] = new Inimigo();
+		data[count].Nome = e.getName();
+		posicao = count;
+		count++;
+	} else {
+
+		posicao = Verificarinimigo(e.getName());// getName guarda o nome do ultimo inimigo e depois verifica
+
+	}
+	
+	if (e.getDistance() < 100) { //se distancia menor que 150 pixels
+		bulletPower = 3.0; //forca total
+	} else if (e.getDistance() > 150 && e.getDistance() < 400) {
+		bulletPower = 2.0; //forca media
+	} else {
+		bulletPower = 1.0; //forca > fraca
+	}
+	//********************************************************
+	// / / / / / / /  / / / / / / / / / / / / / / / / / / / / /
+	//********************************************************
+
+
+
+	int x1Acerto = 0;
+	if ((getOthers() > 1) || (x1Acerto < 3) || x1Acerto >= 8) {
+
+		
+		if (getDistanceRemaining() == 0) { // Se o valor retornado  0, o robo esta atualmente parado.
+			FORWARD = -FORWARD; // Essa chamada retorna valores positivos e negativos. 
+			setAhead(100 * FORWARD); // Valores positivos significam que o robo esta se movendo para a frente. 
+		}
+		setTurnRightRadians(e.getBearingRadians() + Math.PI / 2 - 0.5236 //calculo matematico
+				* FORWARD * (e.getDistance() > 150 ? 1 : -1));
+		
+	}
+
+	else {// Valores negativos significam que o robo esta se movendo para tras. 
+		// Se o robo levar mais de 2 tiros no x1, ele muda o movimento
+		if ((x1Acerto >= 3) && (getOthers() == 1)) {
+
+			setTurnRight(e.getBearing() + 55 - 55 * movidirecao);
+
+			mudancadaenergia = Previsaoenergia - e.getEnergy();
+			if (mudancadaenergia > 0 && mudancadaenergia <= 3) {
+
+				movidirecao = -movidirecao; // Valores negativos significam que o robo esto se movendo para tras. 
+				setAhead((e.getDistance() / 8 + 25.0) * movidirecao);
+			}
+
+		}
+
+	}
+	int tecnicafaz = VerificaTecnica();
+
+	if (getOthers() > 1) {
+		tecnicafaz = 1;
+	}
+	System.out.println("Tecnica atual: " + tecnicafaz + "No alvo: "
+			+ e.getName());
+	if (tecnicafaz == 1) {
+		LinearTargeting(e, bulletPower);
+		fire(bulletPower);
+	} else if (tecnicafaz == 2) {
+		CircularTargeting(e, bulletPower);
+		fire(bulletPower);
+	} else {
+		HeadOnTargeting(e, bulletPower);
+		fire(bulletPower);
+	}
+
+	Previsaoenergia = e.getEnergy();
+
+}
+
+
+public void LinearTargeting(ScannedRobotEvent e, double bulletPower)
+
+{
+
+	double myX = getX();
+	double myY = getY();
+	double absoluteBearing = getHeadingRadians() + e.getBearingRadians();
+	double InimigoX = getX() + e.getDistance() * Math.sin(absoluteBearing);
+	double InimigoY = getY() + e.getDistance() * Math.cos(absoluteBearing);
+	double InimigoHeading = e.getHeadingRadians();
+	double InimigoVelocity = e.getVelocity();
+
+	double deltaTime = 0;
+	double battleFieldHeight = getBattleFieldHeight(), battleFieldWidth = getBattleFieldWidth();
+	double predictedX = InimigoX, predictedY = InimigoY;
+	while ((++deltaTime) * (20.0 - 3.0 * bulletPower) < Point2D.Double
+			.distance(myX, myY, predictedX, predictedY)) {
+		predictedX += Math.sin(InimigoHeading) * InimigoVelocity;
+		predictedY += Math.cos(InimigoHeading) * InimigoVelocity;
+		if (predictedX < 23.0 || predictedY < 23.0
+				|| predictedX > battleFieldWidth - 23.0
+				|| predictedY > battleFieldHeight - 23.0) {
+			predictedX = Math.min(Math.max(23.0, predictedX),
+					battleFieldWidth - 23.0);
+			predictedY = Math.min(Math.max(23.0, predictedY),
+					battleFieldHeight - 23.0);
+			break;
+		}
+	}
+	double theta = Utils.normalAbsoluteAngle(Math.atan2(
+			predictedX - getX(), predictedY - getY()));
+
+	setTurnRadarRightRadians(Utils.normalRelativeAngle(absoluteBearing
+			- getRadarHeadingRadians()));
+	setTurnGunRightRadians(Utils.normalRelativeAngle(theta
+			- getGunHeadingRadians()));
+}
+
+public void CircularTargeting(ScannedRobotEvent e, double bulletPower)
+{//http://www.gsigma.ufsc.br/~popov/aulas/robocode/eventos.html
+
+	//Adicionar robocode.util importacao. * Para Utils e java.awt.geom importacao. * Para Point2D 
+// Este codigo vai esta no manipulador de evento onScannedRobot ();
+
+	double myX = getX();
+	double myY = getY();
+	double oldInimigoHeading = 0;
+	double absoluteBearing = getHeadingRadians() + e.getBearingRadians();
+	double InimigoX = getX() + e.getDistance() * Math.sin(absoluteBearing);
+	double InimigoY = getY() + e.getDistance() * Math.cos(absoluteBearing);
+	double InimigoHeading = e.getHeadingRadians();
+	double InimigoHeadingChange = InimigoHeading - oldInimigoHeading;
+	double InimigoVelocity = e.getVelocity();
+	oldInimigoHeading = InimigoHeading;
+
+	double deltaTime = 0;
+	double battleFieldHeight = getBattleFieldHeight(), battleFieldWidth = getBattleFieldWidth();
+	double predictedX = InimigoX, predictedY = InimigoY;
+	while ((++deltaTime) * (20.0 - 3.0 * bulletPower) < Point2D.Double
+			.distance(myX, myY, predictedX, predictedY)) {
+		predictedX += Math.sin(InimigoHeading) * InimigoVelocity;
+		predictedY += Math.cos(InimigoHeading) * InimigoVelocity;
+		InimigoHeading += InimigoHeadingChange;
+		if (predictedX < 23.0 || predictedY < 23.0
+				|| predictedX > battleFieldWidth - 23.0
+				|| predictedY > battleFieldHeight - 23.0) {
+
+			predictedX = Math.min(Math.max(23.0, predictedX),
+					battleFieldWidth - 23.0);
+			predictedY = Math.min(Math.max(23.0, predictedY),
+					battleFieldHeight - 23.0);
+			break;
+		}
+	}
+	double theta = Utils.normalAbsoluteAngle(Math.atan2(
+			predictedX - getX(), predictedY - getY()));
+
+	setTurnRadarRightRadians(Utils.normalRelativeAngle(absoluteBearing
+			- getRadarHeadingRadians()));
+	setTurnGunRightRadians(Utils.normalRelativeAngle(theta
+			- getGunHeadingRadians()));
+
+}
+
+public void HeadOnTargeting(ScannedRobotEvent e, double bulletpower)
+{
+
+	double absoluteBearing = getHeadingRadians() + e.getBearingRadians();
+
+	setTurnGunRightRadians(robocode.util.Utils
+			.normalRelativeAngle(absoluteBearing - getGunHeadingRadians()));
+}
+
+public int Verificarinimigo(String Nome)
+
+{
+	for (int i = 0; i < 15; i++) {
+		if (data[i].Nome.equals(Nome)) {
+			return i;
+		}
+	}
+	return -1;
+}
+
+public int VerificaTecnica(){
+
+	int tecnica1 = data[posicao].AcertouComTecnica1;
+	int tecnica2 = data[posicao].AcertouComTecnica2;
+	int tecnica3 = data[posicao].AcertouComTecnica3;
+
+	if ((tecnica1 >= tecnica2) && (tecnica1 >= tecnica3)) {
+		data[posicao].AtualTecnica = 1;
+		return 1;
+	} else if ((tecnica2 > tecnica1) && (tecnica2 >= tecnica3)) {
+		data[posicao].AtualTecnica = 2;
+		return 2;
+	} else {
+		data[posicao].AtualTecnica = 3;
+		return 3;
+	}
+}
+
+public void onBulletHit(BulletHitEvent evento)
+{
+
+	String AcertouRobo = evento.getName();
+	int alvo;
+	alvo = data[posicao].AtualTecnica;
+	// Se o tiro acertou o robo alvo
+	if (Atualposicao.equals(AcertouRobo)) {
+		System.out.println("Acertou alvo: Incrementando tecnica " + alvo);
+		if (alvo == 1) {
+			data[posicao].AcertouComTecnica1++;
+			data[posicao].AcertouComTecnica1++;
+			data[posicao].AcertouComTecnica1++;
+
+		} else if (alvo == 2) {
+			data[posicao].AcertouComTecnica2++;
+			data[posicao].AcertouComTecnica2++;
+			// data[posicao].AcertouComTecnica2++;
+		} else {
+			data[posicao].AcertouComTecnica3++;
+			data[posicao].AcertouComTecnica3++;
+			// data[posicao].AcertouComTecnica3++;
+		}
+	}
+
+
+		if (alvo == 1) {
+			data[posicao].AcertouComTecnica1--;
+		} else if (alvo == 2) {
+			data[posicao].AcertouComTecnica2--;
+		} else
+			data[posicao].AcertouComTecnica3--;
+	}
+	return;
+
+}
+
+public void onBulletMissed(BulletMissedEvent evento){
+	// http://robocode.sourceforge.net/docs/robocode/robocode/BulletMissedEvent.html
+
+
+	int tecnica;
+	tecnica = data[posicao].AtualTecnica;
+	if (tecnica == 1) {
+		data[posicao].AcertouComTecnica1--;
+	} else if (tecnica == 2) {
+		data[posicao].AcertouComTecnica2--;
+	} else
+		data[posicao].AcertouComTecnica3--;
+
+	return;
+}
+
+public void onHitWall(HitWallEvent parede){ // onHitWall  executado quando o robo colide com a parede.
+
+
+
+	if (parede.getBearing() > -90 && parede.getBearing() < 90) { // getBearing()	< double	>angulo em graus da parede batida em relacao ao seu robo.
+		back(40);
+		setTurnRight(35);
+	} else {
+		ahead(40);
+		setTurnRight(35);
+
+	}
+}
+}
+
+
+//Configuracoes
+//argumentos
+//-Xmx512M -Dsun.io.useCanonCaches=false -Ddebug=true
