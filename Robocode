@@ -337,6 +337,5 @@ public void onHitWall(HitWallEvent parede){ // onHitWall  executado quando o rob
 }
 
 
-//Configuracoes
-//argumentos
-//-Xmx512M -Dsun.io.useCanonCaches=false -Ddebug=true
+
+
