@@ -46,14 +46,8 @@ public void run() {
 		data[a] = new Inimigo();
 		data[a].Nome = "";
 	}
-	
-	setBodyColor(Color.green);
-	setGunColor(Color.green);
-	setRadarColor(Color.green);
-	setBulletColor(Color.red);
-	setScanColor(Color.green);
-	
-	
+
+	setAllColors(Color.yellow);
 	setAdjustRadarForGunTurn(true);
 	setAdjustRadarForRobotTurn(true);
 	setAdjustGunForRobotTurn(true);
