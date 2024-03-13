@@ -1,6 +1,7 @@
 package Jovem;
 
-
+//Criado por Leandro e Rikson
+//Robo Foi feito priorizando gastar pouca energia e desviar dos vários tiros na arena
 //Aqui estamos importando as classes dos metodos E EVENTOS a serem utilizados no decorrer do codigo
 
 
@@ -34,9 +35,12 @@ public class Inimigo {
 	public int AtualTecnica = 1;
 }
 
-public void run() { 
+public void run() { // executado quando o round for iniciado.
 
-	
+	// >> Separa o movimento radar do da arma. 
+	// o AdjustRadar utilizando como parametro "boolean" >> verdadeiro ou falso 
+	setAdjustRadarForGunTurn(true);//aki estou definnindo q o radar vire independente do :turn: arma.
+	setAdjustRadarForRobotTurn(true); //aki estou definnindo a arma para virar independente do :turn: do robo.
 
 
     // Set colors
@@ -46,27 +50,75 @@ public void run() {
 		data[a] = new Inimigo();
 		data[a].Nome = "";
 	}
-
-	setAllColors(Color.yellow);
+	//cores, essas cores peguei no site www.top-solucoes.com >> Prof. Bruno de Brito
+	setBodyColor(Color.green);
+	setGunColor(Color.green);
+	setRadarColor(Color.green);
+	setBulletColor(Color.red);
+	setScanColor(Color.green);
+	
+	//Set aqui utilizado para o radar para virar a arma de volta
 	setAdjustRadarForGunTurn(true);
 	setAdjustRadarForRobotTurn(true);
 	setAdjustGunForRobotTurn(true);
 
-	while (true) { 
-		turnRadarRight(360); 
-
-			
+	while (true) { //enquanto verdadeiro, faca...
+		turnRadarRight(360); //Vire o radar do robo no sentido horario quando o grau for > 0 em graus
+//			Esta chamada e executada imediatamente e nao retorna nada ate que seja concluida.
+//			
+//			Obs: Valores negativos significam que o radar do
+//			roba esta definido para virar  esquerda em 
+//			vez da direita.
+//
+//		Exemplo:
+//
+//		   / / Ligue o robo de radar de 180 graus para a direita
+//		   turnRadarRight (180);
+//
+//		   / / Depois, vire o robo radar 90 graus para a esquerda
+//		   turnRadarRight (-90);
+//		 
+//		Parametros:
+//		graus - a quantidade de graus para transformar radar do 
+//			robo para a direita. Se graus > 0 radar do robo vai 
+//			virar  direita. Se graus <0 radar do robo vai virar 
+//			 esquerda. Se graus = 0 radar do robo nao vai virar, 
+//			mas executar.
+		
+		
 	}
 }
+
+//	 Executado quando o robo bate em outro. Estou utilizando a classe
+//	 "HitRobotEvent" para usar o metodo "getBearing".
+//	 Esse metodo  padrao e encontrado na wiki do robocode
+public void onHitRobot(HitRobotEvent e) { 		
+	//Este evento avisa quando o robo colide com outro.
+
 
 	if (e.getBearing() > -90 && e.getBearing() < 45) { // O angulo relativo quando esta na frente do robo. 
 		//Quando for zero esta na frente do robo.
 		setBack(40); //volta 80 pixels .. utilzando set para um robo mais avancado (extends AdvancedRobot)
 	} else {
-		setAhead(75); //frente > 120 pixel de acorodo com as configuracoes da tela, utilzando set para um robo mais avancado (extends AdvancedRobot)
+		setAhead(90); //frente > 120 pixel de acorodo com as configuracoes da tela, utilzando set para um robo mais avancado (extends AdvancedRobot)
 	}
 }
 
+// Evento se inicia ao detectar inimigo:
+public void onScannedRobot(ScannedRobotEvent e) {//Executado quando o radar do seu robo encontra um adversario.
+	//Esse evento  iniciado quando um robo for dectado pelo scanner.
+	// Esse classe nao  herdade, a logica interna dessa classe de envento pode mudar.
+	
+	//Metodos da classe ScannedRobotEvent
+	//Comandos	Tipo Retorno	Descricao Retorno
+	//getName()	String	Retorna o nome do robo adversario scaneado.
+	//getBearing()	double	Retorna o angulo do robo adversario em relacao ao seu robo
+	//getBearingRadians()	double	angulo em radianos do robo adversario em relacao ao seu.
+	//getDistance()	double	Retorna a distacia do robo adversario em relacao ao seu robo.
+	//getEnergy()	double	Retorna a energia do robo adversario.
+	//getHeading()	double	Retorna o angulo em graus do adversario em relacao a tela.
+	//getHeadingRadians()	double	Retorna o angulo em radiaons do adversario em relacao a tela.
+	//getVelocity()	double	Retorna a velocidade do robo scaneado.
 
 	Atualposicao = e.getName(); // String	Retorna o nome do robo adversario scaneado.
 	if (Verificarinimigo(e.getName()) == -1) {
@@ -80,7 +132,12 @@ public void run() {
 		posicao = Verificarinimigo(e.getName());// getName guarda o nome do ultimo inimigo e depois verifica
 
 	}
-	
+	//**********************************************************
+	//Tiros do ROBO< Ajustar aqui > Distancia e power do canhao/
+	//**********************************************************
+	double bulletPower;
+	// Assumindo radar e arma sao alinhados 
+	//Aqui sao verificados a distancia do robo inimigo, onde o nome foi armazenado (getname)
 	if (e.getDistance() < 100) { //se distancia menor que 150 pixels
 		bulletPower = 3.0; //forca total
 	} else if (e.getDistance() > 150 && e.getDistance() < 400) {
@@ -98,13 +155,17 @@ public void run() {
 	if ((getOthers() > 1) || (x1Acerto < 3) || x1Acerto >= 8) {
 
 		
+		//********************************************************************************
+		// Movimento oscilatorio baseado nessa formula									/
+		//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+		// Retorna a distancia restante em movimento atual do robo medida em pixels.
 		if (getDistanceRemaining() == 0) { // Se o valor retornado  0, o robo esta atualmente parado.
 			FORWARD = -FORWARD; // Essa chamada retorna valores positivos e negativos. 
 			setAhead(100 * FORWARD); // Valores positivos significam que o robo esta se movendo para a frente. 
 		}
 		setTurnRightRadians(e.getBearingRadians() + Math.PI / 2 - 0.5236 //calculo matematico
 				* FORWARD * (e.getDistance() > 150 ? 1 : -1));
-		
+		// ********************************************************************************
 	}
 
 	else {// Valores negativos significam que o robo esta se movendo para tras. 
@@ -145,10 +206,17 @@ public void run() {
 
 }
 
+/*
+ * Coloquei a classe LinearTargeting e CircularTargeting, pesquisei na
+ * internet e achei uma logica interessante, para autodetectar a posicao de
+ * robos inimigos, sendo assim adaptei ao meu codigo, nao sei exatamente
+ * como funciona os calculos matematicos.
+ */
 
 public void LinearTargeting(ScannedRobotEvent e, double bulletPower)
 
 {
+	//para entender melhor como funciona o codigo abaixo: http://robowiki.net/wiki/LinearTargeting#How_It_Works
 
 	double myX = getX();
 	double myY = getY();
@@ -231,8 +299,23 @@ public void CircularTargeting(ScannedRobotEvent e, double bulletPower)
 }
 
 public void HeadOnTargeting(ScannedRobotEvent e, double bulletpower)
+//Metodos da classe ScannedRobotEvent
+//Comandos	Tipo Retorno	Descricao Retorno
+//getName()	String	Retorna o nome do robo adversario scaneado.
+//getBearing()	double	Retorna o angulo do robo adversario em relacao ao seu robo
+//getBearingRadians()	double	angulo em radianos do robo adversario em relacao ao seu.
+//getDistance()	double	Retorna a distacia do robo adversorio em relacao ao seu robo.
+//getEnergy()	double	Retorna a energia do robo adversario.
+//getHeading()	double	Retorna o angulo em graus do adversario em relacao a tela.
+//getHeadingRadians()	double	Retorna o angulo em radiaons do adversario em relacao a tela.
+//getVelocity()	double	Retorna a velocidade do robo scaneado.
 {
+/*
+ * funcao que prover uma estrategia simples de apontar onde voce viu pela
+ * ultima vez o inimigo.
+ */
 
+	//Codigo: http://robowiki.net/wiki/HeadOnTargeting
 	double absoluteBearing = getHeadingRadians() + e.getBearingRadians();
 
 	setTurnGunRightRadians(robocode.util.Utils
@@ -240,7 +323,9 @@ public void HeadOnTargeting(ScannedRobotEvent e, double bulletpower)
 }
 
 public int Verificarinimigo(String Nome)
-
+/*
+ * Verifica o nome dos inimigos e retorna
+ */
 {
 	for (int i = 0; i < 15; i++) {
 		if (data[i].Nome.equals(Nome)) {
@@ -251,6 +336,10 @@ public int Verificarinimigo(String Nome)
 }
 
 public int VerificaTecnica(){
+/*
+ * Verifica tecnica utilizada baseado na prioridade de valores declarado na
+ * classe "Inimigo"
+ */
 
 	int tecnica1 = data[posicao].AcertouComTecnica1;
 	int tecnica2 = data[posicao].AcertouComTecnica2;
@@ -270,6 +359,10 @@ public int VerificaTecnica(){
 
 public void onBulletHit(BulletHitEvent evento)
 {
+/*
+ * Utilizado quando meu robo acerta um tiro no inimigo   
+ */
+
 
 	String AcertouRobo = evento.getName();
 	int alvo;
@@ -293,7 +386,8 @@ public void onBulletHit(BulletHitEvent evento)
 		}
 	}
 
-
+	// Se o tiro acertou outro robo que nao o alvo:
+	else {
 		if (alvo == 1) {
 			data[posicao].AcertouComTecnica1--;
 		} else if (alvo == 2) {
@@ -307,6 +401,11 @@ public void onBulletHit(BulletHitEvent evento)
 
 public void onBulletMissed(BulletMissedEvent evento){
 	// http://robocode.sourceforge.net/docs/robocode/robocode/BulletMissedEvent.html
+/*
+ * Esse evento chamado quando o robo acertar tiros na parede, errando o seu alvo. se
+ * tais erros foram feitos com respectivas tecnicas, ele sera informado e vai mudando as
+ * tecnicas
+ */
 
 
 	int tecnica;
@@ -322,6 +421,11 @@ public void onBulletMissed(BulletMissedEvent evento){
 }
 
 public void onHitWall(HitWallEvent parede){ // onHitWall  executado quando o robo colide com a parede.
+/*
+ * A HitWallEvent  enviado para onHitWall(), quando o robo colide na parede,
+ * e o getBearing () retorna o rumo para a parede que voce bateu, em relacao
+ * a posicao do seu robo.
+ */
 
 
 
@@ -329,7 +433,7 @@ public void onHitWall(HitWallEvent parede){ // onHitWall  executado quando o rob
 		back(40);
 		setTurnRight(35);
 	} else {
-		ahead(40);
+		ahead(50);
 		setTurnRight(35);
 
 	}
@@ -337,5 +441,6 @@ public void onHitWall(HitWallEvent parede){ // onHitWall  executado quando o rob
 }
 
 
-
-
+//Configuracoes
+//argumentos
+//-Xmx512M -Dsun.io.useCanonCaches=false -Ddebug=true
